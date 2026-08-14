@@ -24,9 +24,19 @@ public class LauncherService
 
     private static string LoadAzureClientId()
     {
-        var envPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), ".env");
-        if (File.Exists(envPath))
+        // dotnet run은 CWD가 프로젝트 루트라 .env를 바로 찾지만, macOS .app 번들로
+        // 실행하면 CWD가 프로젝트 루트가 아니게 된다. 실행 파일 옆(AppContext.BaseDirectory,
+        // 번들이면 Contents/MacOS)도 같이 뒤진다.
+        var candidatePaths = new[]
         {
+            System.IO.Path.Combine(Directory.GetCurrentDirectory(), ".env"),
+            System.IO.Path.Combine(AppContext.BaseDirectory, ".env"),
+        };
+
+        foreach (var envPath in candidatePaths)
+        {
+            if (!File.Exists(envPath)) continue;
+
             foreach (var line in File.ReadAllLines(envPath))
             {
                 var trimmed = line.Trim();
