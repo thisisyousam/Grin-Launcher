@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Threading;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
 using CmlLib.Core.Auth.Microsoft;
@@ -9,6 +10,7 @@ using CmlLib.Core.ProcessBuilder;
 using Microsoft.Identity.Client;
 using XboxAuthNet.Game.Msal;
 using XboxAuthNet.Game.Msal.OAuth;
+using XboxAuthNet.Game.XboxAuth;
 
 namespace GrinLauncher;
 
@@ -60,17 +62,53 @@ public class LauncherService
 
     private void Log(string message) => LogMessage?.Invoke(message);
 
+    // JEAuthException.Message는 서버 JSON의 "error" 필드만 담고 어느 단계(Xbox Live
+    // XASU/XSTS vs Minecraft login_with_xbox vs profile 조회)에서 실패했는지 알려주지
+    // 않는다. 모든 요청/실패 응답을 그대로 찍어서 정확한 URL과 응답 본문을 확인한다.
+    private sealed class LoggingHttpHandler : DelegatingHandler
+    {
+        private readonly Action<string> _log;
+        public LoggingHttpHandler(Action<string> log) : base(new HttpClientHandler()) => _log = log;
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                var line = $"[HTTP] {request.Method} {request.RequestUri} -> {(int)response.StatusCode} {response.ReasonPhrase}\n{body}";
+                // 로그인 화면은 HomePage(로그 박스)가 아직 안 보이는 상태이므로 콘솔에도 남긴다.
+                Console.WriteLine(line);
+                _log(line);
+            }
+            return response;
+        }
+    }
+
     public async Task<MSession> GetSessionAsync()
     {
         _msalApp ??= await MsalClientHelper.BuildApplicationWithCache(AzureClientId);
 
+        // 기본 Basic() Xbox 인증은 미성년/가족 세이프티 등으로 나이 확인이 걸린 계정에서
+        // "unauthorized" 401만 던지고 실패한다. 문서(auth.microsoft, 나이 관련 섹션)가
+        // 권장하는 대로 Full()을 사용해 디바이스/타이틀 토큰까지 포함시킨다.
         var loginHandler = new JELoginHandlerBuilder()
+            .WithHttpClient(new HttpClient(new LoggingHttpHandler(Log)))
             .WithOAuthProvider(new MsalCodeFlowProvider(_msalApp))
+            .WithXboxAuthProvider(new FullXboxProvider(JELoginHandler.RelyingParty))
             .Build();
 
-        var session = await loginHandler.Authenticate();
-        Log("Microsoft 로그인 성공!");
-        return session;
+        try
+        {
+            var session = await loginHandler.Authenticate();
+            Log("Microsoft 로그인 성공!");
+            return session;
+        }
+        catch (JEAuthException ex)
+        {
+            Log($"Microsoft 로그인 실패 - StatusCode: {ex.StatusCode}, Error: {ex.Error}, ErrorType: {ex.ErrorType}, ErrorMessage: {ex.ErrorMessage}");
+            throw;
+        }
     }
 
     // MojangAPI 1.2.1의 Mojang.GetProfileUsingUUID는 textures.SKIN.metadata를 무조건

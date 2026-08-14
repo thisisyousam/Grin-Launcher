@@ -7,6 +7,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CmlLib.Core.Auth;
+using CmlLib.Core.Auth.Microsoft;
 using GrinLauncher.Views;
 
 namespace GrinLauncher;
@@ -138,6 +139,10 @@ public partial class MainWindow : Window
             LoginScreen.IsVisible = false;
             Shell.IsVisible = true;
             NavigateTo("home");
+        }
+        catch (JEAuthException ex)
+        {
+            LoginStatusText.Text = $"로그인 실패 ({ex.StatusCode}): {ex.Message}";
         }
         catch (Exception ex)
         {
