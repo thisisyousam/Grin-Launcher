@@ -1,5 +1,6 @@
 bin/
 obj/
+publish/
 test-minecraft/
 mods-to-install/
 .env

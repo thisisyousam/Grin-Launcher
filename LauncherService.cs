@@ -19,7 +19,12 @@ public class LauncherService
     private const string McVersion = "26.2";
     private const string ManifestUrl = "https://raw.githubusercontent.com/thisisyousam/Grin-Launcher/main/manifest.json";
 
-    // Azure App Registration의 Application (Client) ID. .env 파일(AZURE_CLIENT_ID)에서 로드.
+    // Azure App Registration의 Application (Client) ID. .env/환경 변수(AZURE_CLIENT_ID)로
+    // 덮어쓸 수 있지만, 기본값은 배포용 exe/dmg에도 그대로 들어간다. Public client OAuth
+    // 앱의 Client ID는 시크릿이 아니라 공개해도 안전하다 (클라이언트 시크릿 없이 동작하는
+    // 게 이 방식의 핵심 — 대부분의 오픈소스 마인크래프트 런처도 소스에 그대로 박아둔다).
+    private const string DefaultAzureClientId = "b0f0d4ed-d71c-44b0-acf7-d108d7d69df4";
+
     private static readonly string AzureClientId = LoadAzureClientId();
 
     private static string LoadAzureClientId()
@@ -48,8 +53,7 @@ public class LauncherService
             }
         }
 
-        return Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")
-            ?? throw new InvalidOperationException(".env 파일에 AZURE_CLIENT_ID가 설정되어 있지 않습니다. .env.example을 참고하세요.");
+        return Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? DefaultAzureClientId;
     }
 
     public string MinecraftVersion => McVersion;
