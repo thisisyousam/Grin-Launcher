@@ -50,7 +50,6 @@ public class LauncherService
     public event EventHandler<CmlLib.Core.Installers.InstallerProgressChangedEventArgs>? FileProgressChanged;
     public event EventHandler<CmlLib.Core.ByteProgress>? ByteProgressChanged;
 
-    private ModManifest? _cachedManifest;
     private IPublicClientApplication? _msalApp;
 
     public LauncherService()
@@ -173,15 +172,13 @@ public class LauncherService
         return fabricVersionName;
     }
 
+    // 런처가 켜져 있는 동안 manifest.json이 갱신될 수 있으므로(관리자가 새 모드 릴리스 후
+    // 재배포) 캐싱하지 않고 호출할 때마다 새로 받아온다.
     public async Task<ModManifest> GetManifestAsync()
     {
-        if (_cachedManifest is not null)
-            return _cachedManifest;
-
         using var httpClient = new HttpClient();
         var manifest = await httpClient.GetFromJsonAsync<ModManifest>(ManifestUrl);
-        _cachedManifest = manifest!;
-        return _cachedManifest;
+        return manifest!;
     }
 
     public async Task DownloadModsAsync(ModManifest manifest)
