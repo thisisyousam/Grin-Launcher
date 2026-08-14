@@ -7,7 +7,7 @@ using Avalonia.OpenGL.Controls;
 using Avalonia.Threading;
 using Silk.NET.OpenGL;
 
-namespace GreenLauncher.Rendering;
+namespace GrinLauncher.Rendering;
 
 // OpenGlControlBase 기반 마인크래프트 휴머노이드 스킨 3D 뷰어.
 // - HeadOnly=false: 전신 모델, 마우스 드래그로 자유 회전 + 휠 줌
@@ -60,7 +60,7 @@ public class SkinViewerControl : OpenGlControlBase
     // AvaloniaResource Include="Assets/**" 글롭에 포함).
     public static Bitmap LoadBundledBackground(string fileName)
     {
-        using var stream = Avalonia.Platform.AssetLoader.Open(new Uri($"avares://GreenLauncher/Assets/background/{fileName}"));
+        using var stream = Avalonia.Platform.AssetLoader.Open(new Uri($"avares://GrinLauncher/Assets/background/{fileName}"));
         return new Bitmap(stream);
     }
 

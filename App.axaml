@@ -1,54 +1,48 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="GreenLauncher.App"
+             x:Class="GrinLauncher.App"
              RequestedThemeVariant="Light">
     <Application.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="BgBrush">#FFFFFF</SolidColorBrush>
-                    <SolidColorBrush x:Key="TitlebarBrush">#F7F8F6</SolidColorBrush>
-                    <SolidColorBrush x:Key="SidebarBrush">#F7F8F6</SolidColorBrush>
-                    <SolidColorBrush x:Key="SurfaceBrush">#FFFFFF</SolidColorBrush>
-                    <SolidColorBrush x:Key="HeroBrush">#F2F7EA</SolidColorBrush>
-                    <SolidColorBrush x:Key="BorderBrush2">#12000000</SolidColorBrush>
-                    <SolidColorBrush x:Key="TextPrimaryBrush">#1A1B1E</SolidColorBrush>
-                    <SolidColorBrush x:Key="TextSecondaryBrush">#6B7280</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentBrush">#89D22F</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentHoverBrush">#79BC28</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentTextBrush">#12210A</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentTintBrush">#2489D22F</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentTextOnTintBrush">#4F7A1A</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentGlowBrush">#4D89D22F</SolidColorBrush>
-                    <SolidColorBrush x:Key="AvatarBgBrush">#E5E8E1</SolidColorBrush>
-                    <SolidColorBrush x:Key="ToggleTrackBrush">#D8DCD2</SolidColorBrush>
-                    <SolidColorBrush x:Key="ToggleThumbBrush">#FFFFFF</SolidColorBrush>
-                    <BoxShadows x:Key="CardShadow">0 1 3 0 #0F000000, 0 6 16 0 #0A000000</BoxShadows>
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="BgBrush">#1A1B1E</SolidColorBrush>
-                    <SolidColorBrush x:Key="TitlebarBrush">#212226</SolidColorBrush>
-                    <SolidColorBrush x:Key="SidebarBrush">#1A1B1E</SolidColorBrush>
-                    <SolidColorBrush x:Key="SurfaceBrush">#26272B</SolidColorBrush>
-                    <SolidColorBrush x:Key="HeroBrush">#26272B</SolidColorBrush>
-                    <SolidColorBrush x:Key="BorderBrush2">#14FFFFFF</SolidColorBrush>
-                    <SolidColorBrush x:Key="TextPrimaryBrush">#F0F0F0</SolidColorBrush>
-                    <SolidColorBrush x:Key="TextSecondaryBrush">#9CA3AF</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentBrush">#89D22F</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentHoverBrush">#9BE04A</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentTextBrush">#12210A</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentTintBrush">#2989D22F</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentTextOnTintBrush">#A9E35D</SolidColorBrush>
-                    <SolidColorBrush x:Key="AccentGlowBrush">#5989D22F</SolidColorBrush>
-                    <SolidColorBrush x:Key="AvatarBgBrush">#33353A</SolidColorBrush>
-                    <SolidColorBrush x:Key="ToggleTrackBrush">#3A3C40</SolidColorBrush>
-                    <SolidColorBrush x:Key="ToggleThumbBrush">#89D22F</SolidColorBrush>
-                    <BoxShadows x:Key="CardShadow">0 2 10 0 #59000000</BoxShadows>
-                </ResourceDictionary>
-            </ResourceDictionary.ThemeDictionaries>
+            <SolidColorBrush x:Key="BgBrush">#F4F5F2</SolidColorBrush>
+            <SolidColorBrush x:Key="SurfaceBrush">#FFFFFF</SolidColorBrush>
+            <SolidColorBrush x:Key="BorderBrush2">#12000000</SolidColorBrush>
+            <SolidColorBrush x:Key="TextPrimaryBrush">#1A1B1E</SolidColorBrush>
+            <SolidColorBrush x:Key="TextSecondaryBrush">#6B7280</SolidColorBrush>
+            <SolidColorBrush x:Key="AccentBrush">#89D22F</SolidColorBrush>
+            <SolidColorBrush x:Key="AccentHoverBrush">#79BC28</SolidColorBrush>
+            <SolidColorBrush x:Key="AccentTextBrush">#12210A</SolidColorBrush>
+            <SolidColorBrush x:Key="AvatarBgBrush">#E5E8E1</SolidColorBrush>
+            <SolidColorBrush x:Key="ToggleTrackBrush">#D8DCD2</SolidColorBrush>
+            <SolidColorBrush x:Key="ToggleThumbBrush">#FFFFFF</SolidColorBrush>
+            <BoxShadows x:Key="CardShadow">0 1 3 0 #0F000000, 0 6 16 0 #0A000000</BoxShadows>
+            <SolidColorBrush x:Key="GlassOverlayBrush">#99FFFFFF</SolidColorBrush>
+            <SolidColorBrush x:Key="GlassBorderBrush">#66FFFFFF</SolidColorBrush>
+            <BoxShadows x:Key="GlassShadow">0 8 24 0 #1F000000, 0 1 2 0 #14000000</BoxShadows>
+            <!-- 사이드바는 카드와 톤은 같지만 별도 토큰으로 분리 — 이후 카드 쪽
+                 유리 톤을 조정해도 사이드바 디자인은 영향받지 않도록 독립시킴
+                 (2026-08-08, 사용자 요청: "사이드바 디자인은 유지해야지") -->
+            <SolidColorBrush x:Key="SidebarGlassOverlayBrush">#99FFFFFF</SolidColorBrush>
+            <SolidColorBrush x:Key="SidebarGlassBorderBrush">#66FFFFFF</SolidColorBrush>
+            <BoxShadows x:Key="SidebarGlassShadow">0 8 24 0 #1F000000, 0 1 2 0 #14000000</BoxShadows>
+            <!-- 버튼용 유리 틴트 (2026-08-08 4차, design.md 참고). CTA는 라임을
+                 90% 알파로 남겨 대비를 최대한 지키고, 사이드바 선택 아이콘은
+                 기존 불투명 흰 원 대신 75% 알파로 낮춰 유리 톤을 준다 -->
+            <SolidColorBrush x:Key="AccentGlassOverlayBrush">#E689D22F</SolidColorBrush>
+            <SolidColorBrush x:Key="NavIconActiveGlassBrush">#BFFFFFFF</SolidColorBrush>
 
-            <FontFamily x:Key="BodyFont">avares://GreenLauncher/Assets/Fonts#Pretendard</FontFamily>
-            <FontFamily x:Key="MonoFont">avares://GreenLauncher/Assets/Fonts#JetBrains Mono</FontFamily>
+
+            <SolidColorBrush x:Key="SliderTrackValueFillDefault" Color="#89D22F" />
+            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#89D22F" />
+            <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#89D22F" />
+            <SolidColorBrush x:Key="SliderTrackValueFillDisabled" Color="#89D22F" />
+
+            <SolidColorBrush x:Key="SliderThumbBackground" Color="#89D22F" />
+            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#89D22F" />
+            <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#89D22F" />
+
+            <FontFamily x:Key="BodyFont">avares://GrinLauncher/Assets/Fonts#Pretendard</FontFamily>
+            <FontFamily x:Key="MonoFont">avares://GrinLauncher/Assets/Fonts#JetBrains Mono</FontFamily>
         </ResourceDictionary>
     </Application.Resources>
 
@@ -61,6 +55,93 @@
         <Style Selector="Button">
             <Setter Property="FontFamily" Value="{StaticResource BodyFont}" />
             <Setter Property="FontWeight" Value="Medium" />
+        </Style>
+
+        <!-- Primary CTA: pill(999px) + 라임 유리. design.md "버튼" 규칙 (2026-08-08 4차:
+             유리 확장, 라임 오버레이는 90% 알파로 남겨 대비를 최대한 지킴) -->
+        <Style Selector="Button.cta">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="999" Background="Transparent"
+                            BorderThickness="1" BorderBrush="{DynamicResource GlassBorderBrush}"
+                            BoxShadow="{DynamicResource GlassShadow}"
+                            ClipToBounds="True">
+                        <ExperimentalAcrylicBorder CornerRadius="999">
+                            <ExperimentalAcrylicBorder.Material>
+                                <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                    TintColor="White" TintOpacity="0.85"
+                                    MaterialOpacity="0.6" FallbackColor="White" />
+                            </ExperimentalAcrylicBorder.Material>
+                            <Panel>
+                                <Border CornerRadius="999" IsHitTestVisible="False"
+                                        Background="Black" />
+                                <ContentPresenter Content="{TemplateBinding Content}"
+                                                Foreground="{TemplateBinding Foreground}"
+                                                Padding="{TemplateBinding Padding}"
+                                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            </Panel>
+                        </ExperimentalAcrylicBorder>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.cta:pointerover">
+            <Setter Property="Opacity" Value="0.85" />
+        </Style>
+        <Style Selector="Button.cta:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+
+        <!-- 보조 버튼: pill(999px) + 무채색 유리. design.md "버튼" 규칙 (2026-08-08 4차:
+             유리 확장, 카드와 같은 GlassOverlay/GlassBorder 톤 재사용) -->
+        <Style Selector="Button.outline">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="999" Background="Transparent"
+                            BorderThickness="1" BorderBrush="{DynamicResource GlassBorderBrush}"
+                            BoxShadow="{DynamicResource GlassShadow}">
+                        <ExperimentalAcrylicBorder CornerRadius="999">
+                            <ExperimentalAcrylicBorder.Material>
+                                <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                    TintColor="White" TintOpacity="0.85"
+                                    MaterialOpacity="0.6" FallbackColor="White" />
+                            </ExperimentalAcrylicBorder.Material>
+                            <Panel>
+                                <Border CornerRadius="999" IsHitTestVisible="False"
+                                        Background="{DynamicResource GlassOverlayBrush}" />
+                                <ContentPresenter Content="{TemplateBinding Content}"
+                                                  Padding="{TemplateBinding Padding}"
+                                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            </Panel>
+                        </ExperimentalAcrylicBorder>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.outline:pointerover">
+            <Setter Property="Opacity" Value="0.85" />
+        </Style>
+        <Style Selector="Button.outline:disabled">
+            <Setter Property="Opacity" Value="0.5" />
         </Style>
     </Application.Styles>
 </Application>

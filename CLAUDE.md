@@ -1,4 +1,4 @@
-# GreenLauncher 프로젝트 정보
+# GrinLauncher 프로젝트 정보
 
 ## 기술 스택
 
@@ -69,4 +69,4 @@
 
 ## 저장소
 
-https://github.com/thisisyousam/Green-Launcher
+https://github.com/thisisyousam/Grin-Launcher

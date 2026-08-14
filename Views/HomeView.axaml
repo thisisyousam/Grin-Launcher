@@ -1,84 +1,80 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:GreenLauncher"
-             x:Class="GreenLauncher.Views.HomeView"
+             xmlns:local="clr-namespace:GrinLauncher"
+             xmlns:controls="clr-namespace:GrinLauncher.Controls"
+             x:Class="GrinLauncher.Views.HomeView"
              x:CompileBindings="True">
-    <ScrollViewer>
-        <StackPanel Spacing="24" Margin="0,0,0,8">
+    <ScrollViewer Padding="32,28">
+        <StackPanel Spacing="24" Margin="0,0,0,8" >
 
             <!-- Hero -->
-            <Border Background="{DynamicResource HeroBrush}" CornerRadius="20" Padding="32,28"
-                    BoxShadow="{DynamicResource CardShadow}">
+            <controls:GlassPanel CornerRadius="20" >
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel Grid.Column="0" Spacing="10" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <Border Background="{DynamicResource AccentTintBrush}" CornerRadius="999" Padding="10,4">
+                            <Border Background="{DynamicResource BorderBrush2}" CornerRadius="999" Padding="10,4">
                                 <TextBlock x:Name="VersionBadgeText" Text="Fabric" FontSize="12" FontWeight="SemiBold"
-                                           FontFamily="{StaticResource MonoFont}"
-                                           Foreground="{DynamicResource AccentTextOnTintBrush}" />
+                                    FontFamily="{StaticResource MonoFont}"
+                                    Foreground="{DynamicResource TextPrimaryBrush}" />
                             </Border>
                             <TextBlock Text="기본 프로필" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                                       VerticalAlignment="Center" />
+                                VerticalAlignment="Center" />
                         </StackPanel>
-                        <TextBlock Text="Green Launcher" FontSize="22" FontWeight="SemiBold"
+                        <TextBlock Text="Grin Launcher" FontSize="22" FontWeight="SemiBold"
                                     Foreground="{DynamicResource TextPrimaryBrush}" />
                         <TextBlock x:Name="SummaryText" Text="" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" />
                     </StackPanel>
-                    <Button Grid.Column="1" x:Name="PlayButton" Content="실행" VerticalAlignment="Center"
-                            Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource AccentTextBrush}"
-                            FontSize="16" FontWeight="SemiBold" Padding="42,16" CornerRadius="999"
+                    <Button Grid.Column="1" x:Name="PlayButton" Classes="cta" Content="실행" VerticalAlignment="Center"
+                            FontSize="16" FontWeight="Normal" Padding="60,12"
                             Click="OnPlayButtonClick" />
                 </Grid>
-            </Border>
+            </controls:GlassPanel>
 
             <!-- 진행바: 다운로드/설치 중일 때만 노출 -->
-            <Grid x:Name="ProgressPanel" IsVisible="False" RowDefinitions="Auto,Auto">
+            <Grid x:Name="ProgressPanel" IsVisible="False" RowDefinitions="Auto,Auto" >
                 <TextBlock Grid.Row="0" x:Name="ProgressStatusText" Text="" FontSize="12" Margin="0,0,0,8"
-                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                    Foreground="{DynamicResource TextSecondaryBrush}" />
                 <Grid Grid.Row="1" Height="18">
-                    <ProgressBar x:Name="Progress" Minimum="0" Maximum="100" Height="6" VerticalAlignment="Center"
-                                 Background="{DynamicResource BorderBrush2}" Foreground="{DynamicResource AccentBrush}" />
+                    <ProgressBar x:Name="Progress" Minimum="0" Maximum="100" Height="16" VerticalAlignment="Center"
+                        Background="{DynamicResource BorderBrush2}" Foreground="{DynamicResource AccentBrush}" />
                     <TextBlock x:Name="ProgressPercentText" Text="0%" FontSize="11"
-                               FontFamily="{StaticResource MonoFont}" HorizontalAlignment="Center"
-                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                        FontFamily="{StaticResource MonoFont}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Foreground="{DynamicResource TextPrimaryBrush}" />
                 </Grid>
             </Grid>
 
+            <!-- 로그 (스펙엔 없지만 디버그용으로 작게 유지) -->
+            <controls:GlassPanel CornerRadius="14" Height="120">
+                <TextBox x:Name="LogBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
+                    BorderThickness="0" Background="White" FontSize="11" Padding="14"
+                    FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextSecondaryBrush}"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+            </controls:GlassPanel>
+
+
             <!-- 설치된 모드 -->
-            <StackPanel Spacing="14">
-                <TextBlock Text="설치된 모드" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
-                <ItemsControl x:Name="ModListItems">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Spacing="10" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="local:ModEntry">
-                            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="14" Padding="16,14"
-                                    BoxShadow="{DynamicResource CardShadow}">
+            <StackPanel Spacing="8">
+                <TextBlock Text="설치된 모드" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                <ItemsControl x:Name="ModListItems"
+                    Background="#7BFFFFFF"
+                    BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8">
+                    <ItemsControl.ItemTemplate >
+                        <DataTemplate x:DataType="local:ModEntry" >
+                            <controls:GlassPanel CornerRadius="14" Padding="16,12">
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Grid.Column="0" Text="{Binding name}" FontSize="14" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="0" Text="{Binding name}" FontSize="14" FontWeight="Medium"
+                                        Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{Binding version}" FontSize="12"
-                                               FontFamily="{StaticResource MonoFont}"
-                                               Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                        FontFamily="{StaticResource MonoFont}"
+                                        Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
                                 </Grid>
-                            </Border>
+                            </controls:GlassPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
 
-            <!-- 로그 (스펙엔 없지만 디버그용으로 작게 유지) -->
-            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="14" BoxShadow="{DynamicResource CardShadow}"
-                    Height="120">
-                <ScrollViewer x:Name="LogScroll" Padding="14">
-                    <TextBox x:Name="LogBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
-                             BorderThickness="0" Background="Transparent" FontSize="11"
-                             FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextSecondaryBrush}" />
-                </ScrollViewer>
-            </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

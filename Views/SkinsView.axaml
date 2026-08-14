@@ -1,103 +1,178 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:views="clr-namespace:GreenLauncher.Views"
-             xmlns:rendering="clr-namespace:GreenLauncher.Rendering"
-             x:Class="GreenLauncher.Views.SkinsView"
-             x:CompileBindings="True">
-    <ScrollViewer>
-        <StackPanel Spacing="24">
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:views="clr-namespace:GrinLauncher.Views"
+            xmlns:rendering="clr-namespace:GrinLauncher.Rendering"
+            x:Class="GrinLauncher.Views.SkinsView"
+            x:CompileBindings="True">
+    <!-- 좌: 미리보기+팔 두께 토글(고정) / 우: 목록 헤더(고정)+카드 리스트(스크롤).
+        두 컬럼 다 페이지 전체 높이를 채우고, 우측 리스트만 자체 스크롤된다. -->
+    <Grid ColumnDefinitions="*,280">
+        <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="0,0,24,0">
 
-            <!-- 미리보기: OpenGL 3D 렌더링 가능하면 전신 모델 + 드래그 회전/휠 줌,
-                 실패 시(컨텍스트 생성 불가 등) 기존 2D 얼굴 크롭 방식으로 폴백 -->
-            <Border CornerRadius="16" Height="480" BoxShadow="{DynamicResource CardShadow}" ClipToBounds="True">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                        <GradientStop Color="#7EC6E6" Offset="0" />
-                        <GradientStop Color="#A9DCED" Offset="0.55" />
-                        <GradientStop Color="#5A9C37" Offset="1" />
-                    </LinearGradientBrush>
-                </Border.Background>
+    <!-- 미리보기 -->
+    <Border Grid.Row="1" CornerRadius="20" BoxShadow="{DynamicResource CardShadow}" ClipToBounds="True">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#7EC6E6" Offset="0" />
+                <GradientStop Color="#A9DCED" Offset="0.55" />
+                <GradientStop Color="#5A9C37" Offset="1" />
+            </LinearGradientBrush>
+        </Border.Background>
+        <Grid>
+            <Border x:Name="SkinPreviewFace" Width="120" Height="120" CornerRadius="14"
+                    Background="#33FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    ClipToBounds="True">
                 <Grid>
-                    <Border x:Name="SkinPreviewFace" Width="120" Height="120" CornerRadius="14"
-                            Background="#33FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center"
-                            ClipToBounds="True">
-                        <Grid>
-                            <Path x:Name="SkinPreviewPlaceholder" Width="48" Height="48" Stretch="Uniform"
-                                  Data="M12,4 A4,4 0 1 0 12,12 A4,4 0 1 0 12,4 Z M4,20 A8,7 0 0 1 20,20"
-                                  Stroke="White" StrokeThickness="1.4" Fill="Transparent" />
-                            <Image x:Name="SkinPreviewImage" Stretch="Uniform" IsVisible="False"
-                                   RenderOptions.BitmapInterpolationMode="None" />
-                        </Grid>
-                    </Border>
-                    <rendering:SkinViewerControl x:Name="SkinViewer3D" HeadOnly="False" IsVisible="False" />
-                    <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="24,20" Spacing="8">
-                        <TextBlock x:Name="SkinPreviewName" Text="기본 (Steve)" FontSize="18" FontWeight="SemiBold" Foreground="#12210A" />
-                        <Border Background="#BFFFFFFF" CornerRadius="999" Padding="10,3" HorizontalAlignment="Left">
-                            <TextBlock Text="적용중" FontSize="11" FontWeight="SemiBold" Foreground="#3D6B1A" />
-                        </Border>
-                    </StackPanel>
-                    <!-- SkinViewer3D(OpenGlControlBase)는 GPU 합성 서피스라 자체적으로
-                         PointerPressed/Moved를 못 받아서, 투명한 오버레이가 대신 입력을
-                         받아 SkinViewer3D.ApplyDrag/ApplyZoom으로 전달한다. -->
-                    <Border x:Name="SkinViewerInteractionOverlay" Background="Transparent" Cursor="Hand" IsVisible="False" />
+                    <Path x:Name="SkinPreviewPlaceholder" Width="48" Height="48" Stretch="Uniform"
+                        Data="M12,4 A4,4 0 1 0 12,12 A4,4 0 1 0 12,4 Z M4,20 A8,7 0 0 1 20,20"
+                        Stroke="White" StrokeThickness="1.4" Fill="Transparent" />
+                    <Image x:Name="SkinPreviewImage" Stretch="Uniform" IsVisible="False"
+                        RenderOptions.BitmapInterpolationMode="None" />
                 </Grid>
             </Border>
-
-            <!-- 팔 두께(모델 타입) — 로그인 계정 스킨은 Mojang 프로필값으로 자동
-                 판정되지만, 업로드한 스킨은 알 수 없어 기본 클래식(4px)으로 두고
-                 여기서 직접 바꿀 수 있게 한다. -->
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="슬림 팔(3px)" FontSize="13" FontWeight="SemiBold"
-                           VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                <Button x:Name="SlimArmToggleButton" Background="Transparent" BorderThickness="0"
-                        Padding="0" VerticalAlignment="Center" Click="OnSlimArmToggleClick" CornerRadius="99999">
-                    <Border Width="42" Height="24" CornerRadius="99999" Background="{DynamicResource ToggleTrackBrush}" Cursor="Hand">
-                        <Border x:Name="SlimArmToggleThumb" Width="18" Height="18" CornerRadius="18"
-                                Background="{DynamicResource ToggleThumbBrush}" HorizontalAlignment="Left" Margin="3,0,0,0">
-                            <Border.Transitions>
-                                <Transitions>
-                                    <ThicknessTransition Property="Margin" Duration="0:0:0.15" />
-                                </Transitions>
-                            </Border.Transitions>
-                        </Border>
-                    </Border>
-                </Button>
+            <rendering:SkinViewerControl x:Name="SkinViewer3D" HeadOnly="False" IsVisible="False" />
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="24,20" Spacing="8">
+                <TextBlock x:Name="SkinPreviewName" Text="기본 (Steve)" FontSize="18" FontWeight="SemiBold" Foreground="White" />
+                <Border Background="#BFFFFFFF" CornerRadius="999" Padding="10,3" HorizontalAlignment="Left">
+                    <TextBlock Text="적용중" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentTextBrush}" />
+                </Border>
             </StackPanel>
+            <Border x:Name="SkinViewerInteractionOverlay" Background="Transparent" Cursor="Hand" IsVisible="False" />
+        </Grid>
+        </Border>
 
-            <!-- 목록 -->
-            <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Grid.Column="0" Text="스킨 목록" FontSize="18" FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextPrimaryBrush}" />
-                <Button Grid.Column="1" Content="+ 스킨 업로드" Background="{DynamicResource AccentBrush}"
-                        Foreground="{DynamicResource AccentTextBrush}" FontSize="13" FontWeight="SemiBold"
-                        Padding="18,9" CornerRadius="999" Click="OnUploadClick" />
-            </Grid>
-            <ItemsControl x:Name="SkinListItems">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Spacing="10" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="views:SkinItem">
-                        <Button Tag="{Binding}" Click="OnSkinItemClick"
-                                Background="{DynamicResource SurfaceBrush}" BorderBrush="{Binding BorderBrush}" BorderThickness="2"
-                                CornerRadius="14" Padding="16,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
-                            <Grid ColumnDefinitions="38,*,Auto">
-                                <Border Grid.Column="0" Width="34" Height="34" CornerRadius="8" ClipToBounds="True"
-                                        Background="{DynamicResource HeroBrush}">
-                                    <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" IsVisible="{Binding HasThumbnail}"
-                                           RenderOptions.BitmapInterpolationMode="None" />
+    </Grid>
+
+        <!-- 우측: 목록 헤더(고정) + 카드 리스트(스크롤) -->
+        <Grid Grid.Column="1" RowDefinitions="Auto,*">
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+
+                <!-- 팔 두께 토글 -->
+                <StackPanel Grid.Column="0" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+
+                            <TextBlock x:Name="SlimArmToggleLabel" Text="와이드" FontSize="11" FontWeight="Medium"
+                            VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Button x:Name="SlimArmToggleButton" Background="Transparent" BorderThickness="0"
+                            Padding="0" VerticalAlignment="Center" Click="OnSlimArmToggleClick" CornerRadius="99999">
+                            <Border x:Name="SlimArmToggleTrack" Width="52" Height="22" CornerRadius="99999" Background="{DynamicResource ToggleTrackBrush}" Cursor="Hand">
+                                <Border.Transitions>
+                                    <Transitions>
+                                        <BrushTransition Property="Background" Duration="0:0:0.15" />
+                                    </Transitions>
+                                    </Border.Transitions>
+                                    <Border x:Name="SlimArmToggleThumb" Width="31" Height="16" CornerRadius="18"
+                                    Background="{DynamicResource ToggleThumbBrush}" HorizontalAlignment="Left" Margin="3,0,0,0">
+                                    <Border.Transitions>
+                                        <Transitions>
+                                            <ThicknessTransition Property="Margin" Duration="0:0:0.15" />
+                                        </Transitions>
+                                        </Border.Transitions>
+                                    </Border>
                                 </Border>
-                                <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="13.5" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="14,0" />
-                                <TextBlock Grid.Column="2" Text="{Binding StatusLabel}" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{Binding StatusForeground}" VerticalAlignment="Center" />
-                            </Grid>
-                        </Button>
+                            </Button>
+                    </StackPanel>
+                </StackPanel>
+
+                <Button Grid.Column="1" Classes="cta" Content="+ 스킨 업로드" FontSize="12" FontWeight="Normal"
+                        Padding="18,8" Click="OnUploadClick" Foreground="White"/>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1" Margin="0,8,0,0">
+                <!-- 카드 2열 그리드. 카드 안은 120px 높이 스킨 이미지 + 그 아래
+                     이름/삭제 버튼만 — "적용중/적용하기" 상태 문구는 빼고, 선택 표시는
+                     사이드바와 동일한 유리 오버레이(IsSelected 바인딩)만으로 전달한다. -->
+                <ItemsControl x:Name="SkinListItems" VerticalAlignment="Top">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="2" VerticalAlignment="Top" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="views:SkinItem">
+                        <Panel Margin="0,0,10,10">
+                            <Button Tag="{Binding}" Click="OnSkinItemClick"
+                                    Background="#fff" BorderThickness="0"
+                                    Cursor="Hand"
+                                    CornerRadius="14" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                                <Panel>
+                                    <!-- 모든 카드가 사이드바 배경과 동일한 3겹 유리 구조
+                                        (2026-08-14, "전체 패널 모두 글래스디자인으로" 요청 —
+                                        기존엔 이 acrylic 레이어가 선택된 카드에만 IsVisible로
+                                        켜졌지만, 이제 항상 켜서 모든 카드가 같은 유리 재질을
+                                        쓴다). 선택 여부 구분은 색이 아니라 테두리 두께로만
+                                        전달한다(BorderThickness, IsSelected 바인딩) — 사이드바의
+                                        "선택 = 라임이 아니라 형태 차이"라는 규칙과 같은 결.
+                                        **반드시 아래 콘텐츠(스킨 이미지)보다 먼저 그려야 한다** —
+                                        Digger는 "자신보다 먼저 그려진 것"을 블러 소스로 샘플링하므로,
+                                        이미지가 이 레이어 뒤에 있으면 이미지까지 같이 블러 처리되어
+                                        가려져 보인다(2026-08-14 버그 리포트: "선택하면 스킨 이미지가
+                                        가려짐") -->
+                                    <Border CornerRadius="14" BorderThickness="{Binding CardBorderThickness}"
+                                            BorderBrush="{DynamicResource SidebarGlassBorderBrush}"
+                                            BoxShadow="{DynamicResource SidebarGlassShadow}"
+                                            IsHitTestVisible="False"
+                                            ClipToBounds="True">
+                                        <ExperimentalAcrylicBorder CornerRadius="14">
+                                            <ExperimentalAcrylicBorder.Material>
+                                                <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                                    TintColor="#D2D2D2" TintOpacity="0.8"
+                                                    MaterialOpacity="0.6" FallbackColor="White" />
+                                            </ExperimentalAcrylicBorder.Material>
+                                            <Border CornerRadius="14" IsHitTestVisible="False"
+                                                    Background="{DynamicResource SidebarGlassOverlayBrush}" />
+                                        </ExperimentalAcrylicBorder>
+                                    </Border>
+                                    <!-- 실제 콘텐츠(썸네일/이름/삭제 버튼)는 항상 맨 위 레이어 —
+                                        선택 유리 블러의 영향을 받지 않는 "제일 앞" 자리를 고정한다.
+                                        이미지 자체는 원본 스킨 텍스처를 정면 합성한 것으로,
+                                        모자/재킷 등 겉레이어(오버레이)도 이미 포함되어 있다
+                                        (SkinsView.axaml.cs의 BuildFrontViewBitmap 참고) -->
+                                    <StackPanel Spacing="10" Margin="12">
+                                        <Border MinHeight="120" MaxHeight="120" Padding="12" CornerRadius="8" ClipToBounds="True"
+                                                Background="{DynamicResource SurfaceBrush}">
+                                            <Image Source="{Binding ListThumbnail}" Stretch="Uniform" IsVisible="{Binding HasThumbnail}"
+                                                RenderOptions.BitmapInterpolationMode="None" />
+                                        </Border>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="13.5" FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"
+                                                    TextTrimming="CharacterEllipsis" />
+                                            <!-- 삭제 버튼: 업로드한 스킨만 삭제 가능(CanDelete). 계정에서
+                                                불러온 "현재 스킨"은 로컬 파일이 아니라 삭제 대상이 아니다. -->
+                                            <Button Grid.Column="1" Tag="{Binding}" Click="OnDeleteSkinClick"
+                                                    IsVisible="{Binding CanDelete}"
+                                                    Width="20" Height="20"
+                                                    Background="Transparent" BorderThickness="0" Padding="0"
+                                                    CornerRadius="999" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                                    Cursor="Hand">
+                                                <Path Width="10" Height="10" Stretch="Uniform"
+                                                    StrokeThickness="1" StrokeLineCap="Round" StrokeJoin="Miter" Fill="Transparent"
+                                                    Stroke="{DynamicResource TextSecondaryBrush}"
+                                                    Data="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6 M3 6h18 M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                            </Button>
+                                        </Grid>
+                                    </StackPanel>
+                                </Panel>
+                            </Button>
+                        </Panel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-        </StackPanel>
-    </ScrollViewer>
+            </ScrollViewer>
+
+            <!-- 실패 사유(예외 메시지 전문)는 HomePage 로그에만 남기고, 여기는 짧은
+                            안내 + 재시도 버튼만 보여준다 — 로그인 화면과 달리 스킨 적용은 그냥
+                            다시 누르면 되는 동작이라 원문 노출이 사용자에게 도움이 안 된다. -->
+                        <StackPanel x:Name="ApplyErrorPanel" Orientation="Horizontal" Spacing="10" IsVisible="False">
+                            <TextBlock Text="적용 실패" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"
+                                    VerticalAlignment="Center" />
+                            <Button Content="재시도" Click="OnRetryApplyClick" Cursor="Hand"
+                                    Foreground="{DynamicResource TextPrimaryBrush}"
+                                    FontSize="11.5" FontWeight="SemiBold"
+                                    Background="Transparent" BorderThickness="0" Padding="0" VerticalAlignment="Center" />
+                        </StackPanel>
+        </Grid>
+    </Grid>
 </UserControl>

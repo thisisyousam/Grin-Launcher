@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
-namespace GreenLauncher.Views;
+namespace GrinLauncher.Views;
 
 public partial class HomeView : UserControl
 {
@@ -37,6 +37,6 @@ public partial class HomeView : UserControl
     public void AppendLog(string message)
     {
         LogBox.Text += message + Environment.NewLine;
-        LogScroll.ScrollToEnd();
+        LogBox.CaretIndex = LogBox.Text.Length;
     }
 }

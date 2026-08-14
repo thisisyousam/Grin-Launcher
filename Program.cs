@@ -1,6 +1,6 @@
 using Avalonia;
 
-namespace GreenLauncher;
+namespace GrinLauncher;
 
 class Program
 {

@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="GrinLauncher.Controls.GlassPanel"
+             x:Name="Root">
+    <!-- design.md 유리 카드 표준 구성: 얇은 하이라이트 테두리(Border) + 실제 블러
+         (ExperimentalAcrylicBorder, Digger) + 반투명 틴트 오버레이. macOS 빌드에서
+         Material의 TintColor/TintOpacity가 렌더링에 반영되지 않는 경우가 확인되어
+         (MainWindow 사이드바에서 실측), 실제 보이는 톤은 오버레이 Brush가 담당한다. -->
+    <Border CornerRadius="{Binding #Root.CornerRadius}" Background="Transparent"
+            BorderThickness="1" BorderBrush="{DynamicResource GlassBorderBrush}"
+            BoxShadow="{DynamicResource GlassShadow}">
+        <ExperimentalAcrylicBorder CornerRadius="{Binding #Root.CornerRadius}">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                              TintColor="White" TintOpacity="0.85"
+                                              MaterialOpacity="0.6" FallbackColor="White" />
+            </ExperimentalAcrylicBorder.Material>
+            <Panel>
+                <Border CornerRadius="{Binding #Root.CornerRadius}"
+                        Background="{DynamicResource GlassOverlayBrush}" IsHitTestVisible="False" />
+                <ContentPresenter Content="{Binding #Root.Content}" Padding="{Binding #Root.Padding}" />
+            </Panel>
+        </ExperimentalAcrylicBorder>
+    </Border>
+</UserControl>

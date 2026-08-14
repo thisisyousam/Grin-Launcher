@@ -3,12 +3,12 @@
   "mods": [
     {
       "name": "collection-mod-1.0.0.jar",
-      "downloadUrl": "https://github.com/thisisyousam/Green-Launcher/releases/download/v1.0.0(beta)/collection-mod-1.0.0.jar",
+      "downloadUrl": "https://github.com/thisisyousam/Grin-Launcher/releases/download/v1.0.0(beta)/collection-mod-1.0.0.jar",
       "version": "1.0.0"
     },
     {
       "name": "fabric-api-0.155.2+26.2.jar",
-      "downloadUrl": "https://github.com/thisisyousam/Green-Launcher/releases/download/v1.0.0(beta)/fabric-api-0.155.2+26.2.jar",
+      "downloadUrl": "https://github.com/thisisyousam/Grin-Launcher/releases/download/v1.0.0(beta)/fabric-api-0.155.2+26.2.jar",
       "version": "0.155.2"
     }
   ]

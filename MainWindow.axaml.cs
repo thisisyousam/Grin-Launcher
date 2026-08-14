@@ -5,45 +5,36 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Styling;
 using Avalonia.Threading;
 using CmlLib.Core.Auth;
+using GrinLauncher.Views;
 
-namespace GreenLauncher;
+namespace GrinLauncher;
 
 public partial class MainWindow : Window
 {
     private static readonly HttpClient AvatarHttpClient = new();
-    private static readonly IBrush InactiveIconBrush = Brush.Parse("#9CA3AF");
 
     private readonly LauncherService _launcherService = new();
-    private bool _has3D = true;
     private MSession? _session;
     private string _currentPage = "home";
-    private (Button Button, Avalonia.Controls.Shapes.Path Icon, TextBlock Label, string Key)[] _navItems = [];
+    private (Button Button, Border Circle, Avalonia.Controls.Shapes.Path Icon, string Key)[] _navItems = [];
 
     public MainWindow()
     {
         InitializeComponent();
 
-        AvatarViewer3D.SetBackgroundColor(0xE5, 0xE8, 0xE1);
-        AvatarViewer3D.SetBackgroundImage(Rendering.SkinViewerControl.LoadBundledBackground("bg_sunset.png"));
-        AvatarViewer3D.InitFailed += (_, _) =>
-        {
-            _has3D = false;
-            if (AvatarViewer3D.Parent is Panel avatarHost) avatarHost.Children.Remove(AvatarViewer3D);
-        };
-
         _navItems =
         [
-            (NavHomeButton, NavHomeIcon, NavHomeLabel, "home"),
-            (NavSkinsButton, NavSkinsIcon, NavSkinsLabel, "skins"),
-            (NavSettingsButton, NavSettingsIcon, NavSettingsLabel, "settings"),
-            (NavAccountButton, NavAccountIcon, NavAccountLabel, "account"),
+            (NavHomeButton, NavHomeCircle, NavHomeIcon, "home"),
+            (NavSkinsButton, NavSkinsCircle, NavSkinsIcon, "skins"),
+            (NavSettingsButton, NavSettingsCircle, NavSettingsIcon, "settings"),
+            (NavAccountButton, NavAccountCircle, NavAccountPlaceholder, "settings"),
         ];
 
         HomePage.PlayRequested += OnPlayRequested;
-        AccountPage.LogoutRequested += OnLogoutRequested;
+        SettingsPage.LogoutRequested += OnLogoutRequested;
+        SkinsPage.SkinApplyRequested += OnSkinApplyRequested;
 
         _launcherService.LogMessage += message => Dispatcher.UIThread.Post(() => HomePage.AppendLog(message));
         _launcherService.FileProgressChanged += (_, args) => Dispatcher.UIThread.Post(() =>
@@ -59,8 +50,8 @@ public partial class MainWindow : Window
 
         SettingsPage.SetGameDirectory(System.IO.Path.GetFullPath(_launcherService.Path.BasePath));
         SettingsPage.SetJavaPath(DetectJavaPath());
+        SkinsPage.SetSkinsDirectory(System.IO.Path.Combine(_launcherService.Path.BasePath, "skins"));
 
-        UpdateThemeToggle();
         ApplyNavHighlight();
         LoadModList();
     }
@@ -90,25 +81,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnThemeToggleClick(object? sender, RoutedEventArgs e)
-    {
-        var app = Application.Current!;
-        var isDark = app.ActualThemeVariant == ThemeVariant.Dark;
-        app.RequestedThemeVariant = isDark ? ThemeVariant.Light : ThemeVariant.Dark;
-        UpdateThemeToggle();
-        ApplyNavHighlight();
-    }
-
-    private void UpdateThemeToggle()
-    {
-        var isDark = Application.Current!.ActualThemeVariant == ThemeVariant.Dark;
-        ToggleThumb.Margin = new Thickness(isDark ? 21 : 3, 0, 0, 0);
-    }
-
     private void OnNavHomeClick(object? sender, RoutedEventArgs e) => NavigateTo("home");
     private void OnNavSkinsClick(object? sender, RoutedEventArgs e) => NavigateTo("skins");
     private void OnNavSettingsClick(object? sender, RoutedEventArgs e) => NavigateTo("settings");
-    private void OnNavAccountClick(object? sender, RoutedEventArgs e) => NavigateTo("account");
+    private void OnNavAccountClick(object? sender, RoutedEventArgs e) => NavigateTo("settings");
 
     private void NavigateTo(string page)
     {
@@ -116,23 +92,33 @@ public partial class MainWindow : Window
         HomePage.IsVisible = page == "home";
         SkinsPage.IsVisible = page == "skins";
         SettingsPage.IsVisible = page == "settings";
-        AccountPage.IsVisible = page == "account";
         ApplyNavHighlight();
     }
 
     private void ApplyNavHighlight()
 {
-    var isDark = Application.Current!.ActualThemeVariant == ThemeVariant.Dark;
-    var textPrimary = Brush.Parse(isDark ? "#F0F0F0" : "#1A1B1E");
-    var accentTint = Brush.Parse(isDark ? "#2989D22F" : "#2489D22F");
-    var accentTextOnTint = Brush.Parse(isDark ? "#A9E35D" : "#4F7A1A");
+    // 선택 아이콘도 유리 재질로 (2026-08-08 4차, design.md 참고): 기존 불투명 흰/회색
+    // 원 대신 NavIconActiveGlassBrush(75% 알파) + SidebarGlassBorderBrush 테두리로
+    // "떠 보이는 유리 캡슐" 톤을 사이드바 배경과 맞춤
+    this.TryFindResource("NavIconActiveGlassBrush", out var activeCircleRes);
+    this.TryFindResource("SidebarGlassBorderBrush", out var activeBorderRes);
+    var activeCircle = (IBrush)activeCircleRes!;
+    var activeBorder = (IBrush)activeBorderRes!;
+    var iconActive = Brush.Parse("#1A1B1E");
+    var iconInactive = Brush.Parse("#6B7280");
 
-    foreach (var (button, icon, label, key) in _navItems)
+    foreach (var (button, circle, icon, key) in _navItems)
     {
-        var active = key == _currentPage;
-        button.Background = active ? accentTint : Brushes.Transparent;
-        label.Foreground = active ? accentTextOnTint : textPrimary;
-        icon.Fill = active ? accentTextOnTint : InactiveIconBrush;
+        // 계정 아바타(NavAccountButton)는 설정과 목적지(key)만 같을 뿐 별도 선택 상태를
+        // 갖지 않는 얼굴 이미지 요약 프레임이다 — 다른 아이콘처럼 유리 하이라이트
+        // 배경을 얹으면 내부 32x32 얼굴 Border가 불투명 배경이 없어 스킨 얼굴 뒤로
+        // 흰 유리 원이 비쳐 보인다. 설정 아이콘 쪽만 선택 표시를 하고 계정 아바타는
+        // 항상 배경 없이 얼굴 이미지 그대로 유지한다.
+        var active = button != NavAccountButton && key == _currentPage;
+        circle.Background = active ? activeCircle : Brushes.Transparent;
+        circle.BorderBrush = active ? activeBorder : Brushes.Transparent;
+        circle.BorderThickness = active ? new Thickness(1) : new Thickness(0);
+        icon.Stroke = active ? iconActive : iconInactive;
     }
 }
 
@@ -165,8 +151,7 @@ public partial class MainWindow : Window
 
     private void ShowAccount(MSession session)
     {
-        NicknameText.Text = session.Username;
-        AccountPage.SetProfile(session.Username ?? "", session.UUID ?? "");
+        SettingsPage.SetProfile(session.Username ?? "", session.UUID ?? "");
     }
 
     private async Task LoadAvatarAsync(string? uuid)
@@ -182,33 +167,57 @@ public partial class MainWindow : Window
             using var stream = new MemoryStream(bytes);
             var skin = new Bitmap(stream);
 
-            if (_has3D)
-            {
-                AvatarViewer3D.SetSkin(skin, isSlim);
-                AvatarViewer3D.IsVisible = true;
-            }
-
-            SkinsPage.SetCurrentSkin(skin, isSlim);
-
-            // 베이스 얼굴 레이어: 포맷(64x32/64x64) 관계없이 항상 (8,8)-(16,16)
-            var face = new CroppedBitmap(skin, new PixelRect(8, 8, 8, 8));
-
-            // 모자/헬멧 오버레이 레이어: 항상 (40,8)-(48,16), 투명 부분은 그대로 유지됨
-            var hat = new CroppedBitmap(skin, new PixelRect(40, 8, 8, 8));
-
-            AvatarImage.Source = face;
-            AvatarImage.IsVisible = !_has3D;
-
-            AvatarHatImage.Source = hat;
-            AvatarHatImage.IsVisible = !_has3D;
-
-            AvatarPlaceholder.IsVisible = false;
-            AccountPage.SetAvatar(face); // 필요하면 hat도 같이 넘기도록 SetAvatar 시그니처 확장 가능
+            SkinsPage.SetCurrentSkin(bytes, skin, isSlim);
+            UpdateAvatarDisplay(skin);
         }
         catch (Exception ex)
         {
             // 실패 시 실루엣 플레이스홀더 유지
             Console.WriteLine("[avatar] LoadAvatarAsync EXCEPTION: " + ex);
+        }
+    }
+
+    // 사이드바 아바타 아이콘 + 계정 페이지 아바타에 스킨 얼굴/모자 레이어를 반영한다.
+    // 로그인 직후 스킨 로드와 스킨 적용 성공 시 둘 다에서 재사용.
+    private void UpdateAvatarDisplay(Bitmap skin)
+    {
+        // 베이스 얼굴 레이어: 포맷(64x32/64x64) 관계없이 항상 (8,8)-(16,16)
+        var face = new CroppedBitmap(skin, new PixelRect(8, 8, 8, 8));
+
+        // 모자/헬멧 오버레이 레이어: 항상 (40,8)-(48,16), 투명 부분은 그대로 유지됨
+        var hat = new CroppedBitmap(skin, new PixelRect(40, 8, 8, 8));
+
+        NavAccountFace.Source = face;
+        NavAccountFace.IsVisible = true;
+
+        NavAccountHat.Source = hat;
+        NavAccountHat.IsVisible = true;
+
+        NavAccountPlaceholder.IsVisible = false;
+        SettingsPage.SetAvatar(face, hat);
+    }
+
+    private async void OnSkinApplyRequested(SkinItem item)
+    {
+        if (item.Bytes is null || _session?.AccessToken is null)
+        {
+            SkinsPage.SetApplyResult(item.Id, false, "로그인 세션이 없습니다");
+            return;
+        }
+
+        try
+        {
+            await _launcherService.ChangeSkinAsync(_session.AccessToken, item.Bytes, item.IsSlim);
+
+            using var stream = new MemoryStream(item.Bytes);
+            UpdateAvatarDisplay(new Bitmap(stream));
+
+            SkinsPage.SetApplyResult(item.Id, true);
+        }
+        catch (Exception ex)
+        {
+            HomePage.AppendLog("스킨 적용 실패: " + ex.Message);
+            SkinsPage.SetApplyResult(item.Id, false, ex.Message);
         }
     }
 
@@ -229,9 +238,16 @@ public partial class MainWindow : Window
             await _launcherService.DownloadModsAsync(manifest);
 
             HomePage.SetProgressStatus("게임 실행 중...");
-            await _launcherService.LaunchGameAsync(fabricVersionName, session, maxRamMb);
+            var process = await _launcherService.LaunchGameAsync(fabricVersionName, session, maxRamMb);
 
             HomePage.SetProgressStatus("실행 완료");
+            HomePage.SetProgressVisible(false);
+
+            process.Exited += (_, _) => Dispatcher.UIThread.Post(() =>
+            {
+                HomePage.SetPlayEnabled(true);
+                HomePage.AppendLog("게임이 종료되었습니다.");
+            });
         }
         catch (Exception ex)
         {
@@ -249,12 +265,10 @@ public partial class MainWindow : Window
         LoginScreen.IsVisible = true;
         LoginStatusText.Text = "";
 
-        NicknameText.Text = "";
-        AvatarImage.IsVisible = false;
-        AvatarHatImage.IsVisible = false;
-        if (_has3D) AvatarViewer3D.IsVisible = false;
-        AvatarPlaceholder.IsVisible = true;
-        AccountPage.ResetAvatar();
+        NavAccountFace.IsVisible = false;
+        NavAccountHat.IsVisible = false;
+        NavAccountPlaceholder.IsVisible = true;
+        SettingsPage.ResetAvatar();
 
         HomePage.SetPlayEnabled(true);
         HomePage.SetProgressVisible(false);

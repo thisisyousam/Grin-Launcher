@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace GreenLauncher.Rendering;
+namespace GrinLauncher.Rendering;
 
 // 마인크래프트 스킨 큐브 UV 매핑 규칙(이른바 "Box UV"). Mojang 플레이어 모델과
 // 동일한 배치를 따른다 — 예: 머리(0,0)-(32,16) 블록에서 정면(얼굴)이 (8,8)에

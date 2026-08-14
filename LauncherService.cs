@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
@@ -8,12 +10,12 @@ using Microsoft.Identity.Client;
 using XboxAuthNet.Game.Msal;
 using XboxAuthNet.Game.Msal.OAuth;
 
-namespace GreenLauncher;
+namespace GrinLauncher;
 
 public class LauncherService
 {
     private const string McVersion = "26.2";
-    private const string ManifestUrl = "https://raw.githubusercontent.com/thisisyousam/Green-Launcher/main/manifest.json";
+    private const string ManifestUrl = "https://raw.githubusercontent.com/thisisyousam/Grin-Launcher/main/manifest.json";
 
     // Azure App Registration의 Application (Client) ID. .env 파일(AZURE_CLIENT_ID)에서 로드.
     private static readonly string AzureClientId = LoadAzureClientId();
@@ -67,7 +69,7 @@ public class LauncherService
             .Build();
 
         var session = await loginHandler.Authenticate();
-        Log("MS 로그인 성공!");
+        Log("Microsoft 로그인 성공!");
         return session;
     }
 
@@ -99,6 +101,30 @@ public class LauncherService
             && model.GetString() == "slim";
 
         return (url, isSlim);
+    }
+
+    // Minecraft Services API로 실제 계정 스킨을 교체한다. accessToken은 GetSessionAsync()로
+    // 받은 MSession.AccessToken(게임 실행에도 쓰는 그 토큰)을 그대로 쓴다.
+    public async Task ChangeSkinAsync(string accessToken, byte[] pngBytes, bool isSlim)
+    {
+        using var http = new HttpClient();
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent(isSlim ? "slim" : "classic"), "variant");
+
+        var fileContent = new ByteArrayContent(pngBytes);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        content.Add(fileContent, "file", "skin.png");
+
+        var response = await http.PostAsync("https://api.minecraftservices.com/minecraft/profile/skins", content);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"스킨 적용 실패 ({(int)response.StatusCode}): {body}");
+        }
+
+        // Log("스킨 적용 완료");
     }
 
     public async Task<string> InstallFabricAsync()
@@ -139,7 +165,7 @@ public class LauncherService
         }
     }
 
-    public async Task LaunchGameAsync(string fabricVersionName, MSession session, int maxRamMb = 4096)
+    public async Task<Process> LaunchGameAsync(string fabricVersionName, MSession session, int maxRamMb = 4096)
     {
         var launchOption = new MLaunchOption
         {
@@ -149,8 +175,10 @@ public class LauncherService
 
         await Launcher.InstallAsync(fabricVersionName);
         var process = await Launcher.BuildProcessAsync(fabricVersionName, launchOption);
+        process.EnableRaisingEvents = true;
         process.Start();
         Log("게임 실행됨!");
+        return process;
     }
 }
 
