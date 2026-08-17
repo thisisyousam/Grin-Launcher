@@ -192,18 +192,60 @@ public class LauncherService
     }
 
     // 모드 릴리스에 새 자산이 올라와도 manifest.json을 따로 손대지 않아도 되도록,
-    // GitHub 릴리즈 자산 목록을 매번 새로 조회해서 그 자체를 모드 목록으로 쓴다.
-    // (캐싱하지 않고 호출할 때마다 새로 받아온다 — 관리자가 릴리즈에 새 jar를
-    // 올리면 바로 반영되어야 하므로.)
+    // GitHub 릴리즈 자산 목록을 조회해서 그 자체를 모드 목록으로 쓴다.
+    //
+    // 다만 api.github.com은 미인증 요청을 IP당 시간당 60회로 제한한다. 친구 여럿이
+    // 비슷한 시간에 실행/재실행하면(특히 설치 초반 시행착오) 금방 소진되어 429로
+    // 막힐 수 있다(실제로 겪은 문제). ETag 조건부 요청(바뀐 게 없으면 304, 할당량
+    // 안 깎임)으로 평상시 소모를 줄이고, 그래도 막히면(429/네트워크 오류) 마지막으로
+    // 성공했던 목록을 그대로 써서 앱이 완전히 멈추지 않게 한다.
     public async Task<ModManifest> GetManifestAsync()
     {
+        var cachePath = System.IO.Path.Combine(Path.BasePath, "mods-manifest-cache.json");
+        var cached = await ReadManifestCacheAsync(cachePath);
+
         using var httpClient = new HttpClient();
         httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("GrinLauncher");
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
 
         var releaseUrl = $"https://api.github.com/repos/thisisyousam/Grin-Launcher/releases/tags/{Uri.EscapeDataString(ModsReleaseTag)}";
-        var release = await httpClient.GetFromJsonAsync<GithubRelease>(releaseUrl);
+        using var request = new HttpRequestMessage(HttpMethod.Get, releaseUrl);
+        if (!string.IsNullOrEmpty(cached?.ETag))
+            request.Headers.IfNoneMatch.Add(new EntityTagHeaderValue(cached.ETag));
 
+        HttpResponseMessage response;
+        try
+        {
+            response = await httpClient.SendAsync(request);
+        }
+        catch (Exception ex) when (cached is not null)
+        {
+            Log($"GitHub 릴리즈 조회 실패, 마지막으로 확인된 모드 목록 사용: {ex.Message}");
+            return cached.Manifest;
+        }
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotModified && cached is not null)
+            return cached.Manifest;
+
+        if (!response.IsSuccessStatusCode)
+        {
+            if (cached is not null)
+            {
+                Log($"GitHub 릴리즈 조회 실패({(int)response.StatusCode}), 마지막으로 확인된 모드 목록 사용");
+                return cached.Manifest;
+            }
+
+            if ((int)response.StatusCode is 403 or 429 && response.Headers.TryGetValues("X-RateLimit-Reset", out var resetValues)
+                && long.TryParse(resetValues.FirstOrDefault(), out var resetEpoch))
+            {
+                var waitMinutes = Math.Max(1, (int)Math.Ceiling((DateTimeOffset.FromUnixTimeSeconds(resetEpoch) - DateTimeOffset.UtcNow).TotalMinutes));
+                throw new HttpRequestException($"GitHub API 요청 제한에 걸렸습니다. 약 {waitMinutes}분 후 다시 시도해주세요.");
+            }
+
+            response.EnsureSuccessStatusCode();
+        }
+
+        var release = await response.Content.ReadFromJsonAsync<GithubRelease>();
         var mods = (release?.assets ?? [])
             .Where(asset => asset.name.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
             .Select(asset => new ModEntry
@@ -214,7 +256,39 @@ public class LauncherService
             })
             .ToList();
 
-        return new ModManifest { mcVersion = McVersion, mods = mods };
+        var manifest = new ModManifest { mcVersion = McVersion, mods = mods };
+
+        var etag = response.Headers.ETag?.Tag;
+        if (!string.IsNullOrEmpty(etag))
+            await WriteManifestCacheAsync(cachePath, etag, manifest);
+
+        return manifest;
+    }
+
+    private static async Task<ManifestCache?> ReadManifestCacheAsync(string cachePath)
+    {
+        if (!File.Exists(cachePath)) return null;
+        try
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<ManifestCache>(await File.ReadAllTextAsync(cachePath));
+        }
+        catch
+        {
+            return null; // 캐시 파일이 깨져 있으면 그냥 새로 받아온다
+        }
+    }
+
+    private static async Task WriteManifestCacheAsync(string cachePath, string etag, ModManifest manifest)
+    {
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(cachePath)!);
+        var json = System.Text.Json.JsonSerializer.Serialize(new ManifestCache { ETag = etag, Manifest = manifest });
+        await File.WriteAllTextAsync(cachePath, json);
+    }
+
+    private sealed class ManifestCache
+    {
+        public string ETag { get; set; } = "";
+        public ModManifest Manifest { get; set; } = new();
     }
 
     // 파일명 끝의 "-1.2.3.jar" 패턴에서 버전만 뽑아 모드 목록에 표시한다(예:
