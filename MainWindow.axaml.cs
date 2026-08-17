@@ -34,6 +34,7 @@ public partial class MainWindow : Window
         ];
 
         HomePage.PlayRequested += OnPlayRequested;
+        HomePage.UpdateRequested += OnUpdateRequested;
         SettingsPage.LogoutRequested += OnLogoutRequested;
         SkinsPage.SkinApplyRequested += OnSkinApplyRequested;
 
@@ -72,8 +73,13 @@ public partial class MainWindow : Window
         {
             var manifest = await _launcherService.GetManifestAsync();
             HomePage.SetVersionBadge($"Fabric · {manifest.mcVersion}");
-            HomePage.SetSummary($"모드 {manifest.mods.Count}개 설치됨");
             HomePage.SetModList(manifest.mods);
+
+            var needsUpdate = _launcherService.NeedsModUpdate(manifest);
+            HomePage.SetUpdateMode(needsUpdate);
+            HomePage.SetSummary(needsUpdate
+                ? $"모드 {manifest.mods.Count}개 · 업데이트 필요"
+                : $"모드 {manifest.mods.Count}개 설치됨");
         }
         catch (Exception ex)
         {
@@ -238,10 +244,6 @@ public partial class MainWindow : Window
             HomePage.SetProgressStatus("Fabric 설치 중...");
             var fabricVersionName = await _launcherService.InstallFabricAsync();
 
-            HomePage.SetProgressStatus("모드 다운로드 중...");
-            var manifest = await _launcherService.GetManifestAsync();
-            await _launcherService.DownloadModsAsync(manifest);
-
             HomePage.SetProgressStatus("게임 실행 중...");
             var process = await _launcherService.LaunchGameAsync(fabricVersionName, session, maxRamMb);
 
@@ -258,6 +260,41 @@ public partial class MainWindow : Window
         {
             HomePage.SetProgressStatus("오류 발생");
             HomePage.AppendLog("오류: " + ex.Message);
+            HomePage.SetPlayEnabled(true);
+        }
+    }
+
+    // 실행 버튼이 "업데이트" 모드일 때(새 모드/버전 감지) 호출된다. 모드만 새로 받고
+    // 게임은 켜지 않는다 — 업데이트 완료 후 버튼이 다시 "실행"으로 바뀌면 사용자가
+    // 별도로 눌러 게임을 켠다.
+    private async void OnUpdateRequested()
+    {
+        HomePage.SetPlayEnabled(false);
+        HomePage.SetProgressVisible(true);
+        try
+        {
+            HomePage.SetProgressStatus("모드 업데이트 확인 중...");
+            var manifest = await _launcherService.GetManifestAsync();
+
+            HomePage.SetProgressStatus("모드 다운로드 중...");
+            await _launcherService.DownloadModsAsync(manifest);
+
+            HomePage.SetVersionBadge($"Fabric · {manifest.mcVersion}");
+            HomePage.SetModList(manifest.mods);
+            HomePage.SetSummary($"모드 {manifest.mods.Count}개 설치됨");
+            HomePage.SetUpdateMode(false);
+
+            HomePage.SetProgressStatus("업데이트 완료");
+            HomePage.SetProgressVisible(false);
+            HomePage.AppendLog("모드 업데이트가 완료되었습니다.");
+        }
+        catch (Exception ex)
+        {
+            HomePage.SetProgressStatus("업데이트 실패");
+            HomePage.AppendLog("모드 업데이트 실패: " + ex.Message);
+        }
+        finally
+        {
             HomePage.SetPlayEnabled(true);
         }
     }

@@ -57,7 +57,8 @@ public class LauncherService
     }
 
     public string MinecraftVersion => McVersion;
-    public MinecraftPath Path { get; } = new("./test-minecraft");
+    public MinecraftPath Path { get; } = new(System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GrinLauncher", "minecraft"));
     public MinecraftLauncher Launcher { get; }
 
     public event Action<string>? LogMessage;
@@ -195,16 +196,39 @@ public class LauncherService
         return manifest!;
     }
 
+    // 모드 파일명에 버전이 박혀 있으므로(예: collection-mod-1.0.2.jar) 매니페스트의
+    // 모든 이름이 이미 mods 폴더에 있으면 최신 상태로 본다. 하나라도 없으면(신규 모드
+    // 추가 또는 기존 모드 버전업으로 파일명이 바뀐 경우) 업데이트가 필요하다.
+    public bool NeedsModUpdate(ModManifest manifest)
+    {
+        var modsDir = System.IO.Path.Combine(Path.BasePath, "mods");
+        return manifest.mods.Any(mod => !File.Exists(System.IO.Path.Combine(modsDir, mod.name)));
+    }
+
     public async Task DownloadModsAsync(ModManifest manifest)
     {
         var modsDir = System.IO.Path.Combine(Path.BasePath, "mods");
         Directory.CreateDirectory(modsDir);
+
+        // 버전업으로 파일명이 바뀐 예전 jar가 남아있으면 Fabric이 신구 버전을 동시에
+        // 로드해버리므로, 매니페스트에 없는 기존 jar는 새로 받기 전에 지운다.
+        var keepNames = manifest.mods.Select(mod => mod.name).ToHashSet();
+        foreach (var existingJar in Directory.EnumerateFiles(modsDir, "*.jar"))
+        {
+            if (!keepNames.Contains(System.IO.Path.GetFileName(existingJar)))
+            {
+                Log($"이전 버전 삭제: {System.IO.Path.GetFileName(existingJar)}");
+                File.Delete(existingJar);
+            }
+        }
 
         using var httpClient = new HttpClient();
 
         foreach (var mod in manifest.mods)
         {
             var destPath = System.IO.Path.Combine(modsDir, mod.name);
+            if (File.Exists(destPath)) continue;
+
             Log($"다운로드 중: {mod.name}");
 
             var bytes = await httpClient.GetByteArrayAsync(mod.downloadUrl);
