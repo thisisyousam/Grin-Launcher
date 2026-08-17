@@ -62,7 +62,8 @@
 지인들에게 배포할 커스텀 마인크래프트 런처.
 
 - Fabric 자동 설치
-- GitHub Releases에서 모드 자동 다운로드 (manifest.json 기반)
+- GitHub Releases에서 모드 자동 다운로드 (`v1.0.0(beta)` 릴리즈 자산을 GitHub API로 직접
+  조회, manifest.json 더 이상 사용 안 함)
 - MS 로그인 연결 (진행 중, 위 항목 참고)
 - GUI 디자인 개선 (design.md 기준)
 - 이후 목표: exe/dmg 패키징

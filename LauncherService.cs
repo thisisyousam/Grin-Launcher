@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
@@ -17,7 +18,10 @@ namespace GrinLauncher;
 public class LauncherService
 {
     private const string McVersion = "26.2";
-    private const string ManifestUrl = "https://raw.githubusercontent.com/thisisyousam/Grin-Launcher/main/manifest.json";
+
+    // 모드 jar는 이 태그의 릴리즈 자산으로 올린다. manifest.json을 손으로 맞춰줄
+    // 필요 없이, 이 릴리즈에 뭐가 올라와 있는지를 GitHub API로 그대로 조회해서 쓴다.
+    private const string ModsReleaseTag = "v1.0.0(beta)";
 
     // Azure App Registration의 Application (Client) ID. .env/환경 변수(AZURE_CLIENT_ID)로
     // 덮어쓸 수 있지만, 기본값은 배포용 exe/dmg에도 그대로 들어간다. Public client OAuth
@@ -187,13 +191,49 @@ public class LauncherService
         return fabricVersionName;
     }
 
-    // 런처가 켜져 있는 동안 manifest.json이 갱신될 수 있으므로(관리자가 새 모드 릴리스 후
-    // 재배포) 캐싱하지 않고 호출할 때마다 새로 받아온다.
+    // 모드 릴리스에 새 자산이 올라와도 manifest.json을 따로 손대지 않아도 되도록,
+    // GitHub 릴리즈 자산 목록을 매번 새로 조회해서 그 자체를 모드 목록으로 쓴다.
+    // (캐싱하지 않고 호출할 때마다 새로 받아온다 — 관리자가 릴리즈에 새 jar를
+    // 올리면 바로 반영되어야 하므로.)
     public async Task<ModManifest> GetManifestAsync()
     {
         using var httpClient = new HttpClient();
-        var manifest = await httpClient.GetFromJsonAsync<ModManifest>(ManifestUrl);
-        return manifest!;
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("GrinLauncher");
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+
+        var releaseUrl = $"https://api.github.com/repos/thisisyousam/Grin-Launcher/releases/tags/{Uri.EscapeDataString(ModsReleaseTag)}";
+        var release = await httpClient.GetFromJsonAsync<GithubRelease>(releaseUrl);
+
+        var mods = (release?.assets ?? [])
+            .Where(asset => asset.name.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
+            .Select(asset => new ModEntry
+            {
+                name = asset.name,
+                downloadUrl = asset.browser_download_url,
+                version = ExtractVersion(asset.name)
+            })
+            .ToList();
+
+        return new ModManifest { mcVersion = McVersion, mods = mods };
+    }
+
+    // 파일명 끝의 "-1.2.3.jar" 패턴에서 버전만 뽑아 모드 목록에 표시한다(예:
+    // fabric-api-0.155.2+26.2.jar -> "0.155.2+26.2"). 패턴에 안 맞으면 파일명 그대로 보여준다.
+    private static string ExtractVersion(string fileName)
+    {
+        var match = Regex.Match(fileName, @"-(\d[\d.+]*)\.jar$", RegexOptions.IgnoreCase);
+        return match.Success ? match.Groups[1].Value : fileName;
+    }
+
+    private sealed class GithubRelease
+    {
+        public List<GithubAsset> assets { get; set; } = [];
+    }
+
+    private sealed class GithubAsset
+    {
+        public string name { get; set; } = "";
+        public string browser_download_url { get; set; } = "";
     }
 
     // 모드 파일명에 버전이 박혀 있으므로(예: collection-mod-1.0.2.jar) 매니페스트의
