@@ -2,9 +2,9 @@
   "mcVersion": "26.2",
   "mods": [
     {
-      "name": "collection-mod-1.0.2.jar",
-      "downloadUrl": "https://github.com/thisisyousam/Grin-Launcher/releases/download/v1.0.0(beta)/collection-mod-1.0.2.jar",
-      "version": "1.0.2"
+      "name": "collection-mod-1.0.3.jar",
+      "downloadUrl": "https://github.com/thisisyousam/Grin-Launcher/releases/download/v1.0.0(beta)/collection-mod-1.0.3.jar",
+      "version": "1.0.3"
     },
     {
       "name": "fabric-api-0.155.2+26.2.jar",
@@ -12,9 +12,9 @@
       "version": "0.155.2"
     },
     {
-      "name": "shop-mod-1.0.2.jar",
-      "downloadUrl": "https://github.com/thisisyousam/Grin-Launcher/releases/download/v1.0.0(beta)/shop-mod-1.0.2.jar",
-      "version": "1.0.2"
+      "name": "shop-mod-1.0.3.jar",
+      "downloadUrl": "https://github.com/thisisyousam/Grin-Launcher/releases/download/v1.0.0(beta)/shop-mod-1.0.3.jar",
+      "version": "1.0.3"
     }
   ]
 }
